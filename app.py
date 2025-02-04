@@ -21,7 +21,7 @@ def get_number_properties(num):
         properties.append("odd")
     else:
         properties.append("even")
-    digit_sum = sum(int(digit) for digit in str(int(num)))  # Sum of digits (excluding decimal point)
+    digit_sum = sum(int(digit) for digit in str(abs(int(num))))  # Ensure negative numbers work
     return properties, digit_sum
 
 def is_perfect(num):
@@ -52,9 +52,9 @@ def get_fun_fact(num):
         response = requests.get(f"http://numbersapi.com/{num}/math?json")
         response.raise_for_status()
         data = response.json()
-        return data.get('text', 'No fact available.')
+        return data.get('text', "No fact available.")
     except requests.exceptions.RequestException:
-        return "Could not retrieve fun fact."
+        return "No fact available."  # Ensure it's always a valid string
 
 @app.route('/api/classify-number', methods=['GET'])
 def classify_number():
@@ -73,17 +73,18 @@ def classify_number():
     # Process the number's properties
     properties, digit_sum = get_number_properties(number)
     fun_fact = get_fun_fact(number)
-    is_prime_val = is_prime(int(number))  # Prime check only applies to integers
-    is_perfect_val = is_perfect(int(number))  # Perfect number check only applies to integers
+    is_prime_val = is_prime(int(number))  # Prime check only for integers
+    is_perfect_val = is_perfect(int(number))  # Perfect number check only for integers
 
     response_data = {
         "number": number,
-        "is_prime": is_prime_val,
-        "is_perfect": is_perfect_val,
+        "is_prime": bool(is_prime_val),  # Ensure boolean format
+        "is_perfect": bool(is_perfect_val),  # Ensure boolean format
         "properties": properties,
         "digit_sum": digit_sum,
-        "fun_fact": fun_fact
+        "fun_fact": str(fun_fact)  # Ensure valid JSON by forcing string type
     }
+
     return jsonify(response_data), 200
 
 if __name__ == '__main__':
